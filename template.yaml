@@ -54,6 +54,24 @@ Resources:
               Required: true
               ValidateBody: true
 
+  GetTodosByUsernameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetTodosByUsername
+      Handler: src/handlers/get-todos-by-username-handler.getTodosByUsernameHandler
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TodoTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /todos
+            Method: GET
+            RestApiId: !Ref TodoApi
+
   TodoTable:
     Type: AWS::DynamoDB::Table
     Properties:
