@@ -1,6 +1,16 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        TODO_TABLE: !Ref TodoTable
+        ENDPOINT_OVERRIDE: "" # Used to override DynamoDB endpoint in local dev
+
 Resources:
   TodoApi:
     Type: AWS::Serverless::Api
