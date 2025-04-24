@@ -2,6 +2,18 @@ AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
 
 Resources:
+  TodoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: TodoApi
+      StageName: dev
+      EndpointConfiguration: REGIONAL
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt TodoUserPool.Arn
+
   TodoTable:
     Type: AWS::DynamoDB::Table
     Properties:
