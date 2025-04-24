@@ -6,7 +6,7 @@ const tableName = process.env.TODO_TABLE;
 export const getTodosByUsername = async (username) => {
   const command = new QueryCommand({
     TableName: tableName,
-    IndexName: "usernameIndex",
+    IndexName: "UsernameIndex",
     KeyConditionExpression: "username = :username",
     ExpressionAttributeValues: {
       ":username": username,
