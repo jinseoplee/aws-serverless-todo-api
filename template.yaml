@@ -45,3 +45,13 @@ Resources:
           Required: true
       AutoVerifiedAttributes:
         - email
+
+  TodoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: TodoUserPoolClient
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      UserPoolId: !Ref TodoUserPool
