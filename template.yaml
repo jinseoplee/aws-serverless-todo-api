@@ -18,11 +18,41 @@ Resources:
       Name: TodoApi
       StageName: dev
       EndpointConfiguration: REGIONAL
+      Models:
+        CreateTodo:
+          type: object
+          required:
+            - title
+          properties:
+            title:
+              type: string
       Auth:
         DefaultAuthorizer: CognitoAuthorizer
         Authorizers:
           CognitoAuthorizer:
             UserPoolArn: !GetAtt TodoUserPool.Arn
+
+  CreateTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CreateTodo
+      Handler: src/handlers/create-todo-handler.createTodoHandler
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref TodoTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /todos
+            Method: POST
+            RestApiId: !Ref TodoApi
+            RequestModel:
+              Model: CreateTodo
+              Required: true
+              ValidateBody: true
 
   TodoTable:
     Type: AWS::DynamoDB::Table
