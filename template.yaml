@@ -26,6 +26,16 @@ Resources:
           properties:
             title:
               type: string
+        UpdateTodo:
+          type: object
+          required:
+            - title
+            - completed
+          properties:
+            title:
+              type: string
+            completed:
+              type: boolean
       Auth:
         DefaultAuthorizer: CognitoAuthorizer
         Authorizers:
@@ -89,6 +99,31 @@ Resources:
             Path: /todos/{id}
             Method: GET
             RestApiId: !Ref TodoApi
+
+  UpdateTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UpdateTodo
+      Handler: src/handlers/update-todo-handler.updateTodoHandler
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TodoTable}
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /todos/{id}
+            Method: PUT
+            RestApiId: !Ref TodoApi
+            RequestModel:
+              Model: UpdateTodo
+              Required: true
+              ValidateBody: true
 
   DeleteTodoFunction:
     Type: AWS::Serverless::Function
