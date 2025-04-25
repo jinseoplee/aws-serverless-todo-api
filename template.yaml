@@ -90,6 +90,27 @@ Resources:
             Method: GET
             RestApiId: !Ref TodoApi
 
+  DeleteTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: DeleteTodo
+      Handler: src/handlers/delete-todo-handler.deleteTodoHandler
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TodoTable}
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /todos/{id}
+            Method: DELETE
+            RestApiId: !Ref TodoApi
+
   TodoTable:
     Type: AWS::DynamoDB::Table
     Properties:
