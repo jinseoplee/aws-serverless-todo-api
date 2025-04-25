@@ -1,0 +1,11 @@
+{
+  "httpMethod": "GET",
+  "requestContext": {
+    "requestId": "<REQUEST-ID>",
+    "authorizer": {
+      "claims": {
+        "cognito:username": "<USERNAME>"
+      }
+    }
+  }
+}

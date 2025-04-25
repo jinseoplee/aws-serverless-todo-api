@@ -1,0 +1,14 @@
+{
+  "httpMethod": "DELETE",
+  "pathParameters": {
+    "id": "<ID>"
+  },
+  "requestContext": {
+    "requestId": "<REQUEST-ID>",
+    "authorizer": {
+      "claims": {
+        "cognito:username": "<USERNAME>"
+      }
+    }
+  }
+}
