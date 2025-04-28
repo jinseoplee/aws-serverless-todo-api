@@ -1,0 +1,15 @@
+{
+  "httpMethod": "PUT",
+  "pathParameters": {
+    "id": "<ID>"
+  },
+  "body": "{\"title\": \"<TITLE>\", \"completed\": <COMPLETED>}",
+  "requestContext": {
+    "requestId": "<REQUEST-ID>",
+    "authorizer": {
+      "claims": {
+        "cognito:username": "<USERNAME>"
+      }
+    }
+  }
+}

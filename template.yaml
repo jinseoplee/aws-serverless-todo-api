@@ -1,2 +1,201 @@
 AWSTemplateFormatVersion: 2010-09-09
 Transform: AWS::Serverless-2016-10-31
+
+Globals:
+  Function:
+    Runtime: nodejs20.x
+    Architectures:
+      - x86_64
+    Environment:
+      Variables:
+        TODO_TABLE: !Ref TodoTable
+        ENDPOINT_OVERRIDE: "" # Used to override DynamoDB endpoint in local dev
+
+Resources:
+  TodoApi:
+    Type: AWS::Serverless::Api
+    Properties:
+      Name: TodoApi
+      StageName: dev
+      EndpointConfiguration: REGIONAL
+      Models:
+        CreateTodo:
+          type: object
+          required:
+            - title
+          properties:
+            title:
+              type: string
+        UpdateTodo:
+          type: object
+          required:
+            - title
+            - completed
+          properties:
+            title:
+              type: string
+            completed:
+              type: boolean
+      Auth:
+        DefaultAuthorizer: CognitoAuthorizer
+        Authorizers:
+          CognitoAuthorizer:
+            UserPoolArn: !GetAtt TodoUserPool.Arn
+
+  CreateTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: CreateTodo
+      Handler: src/handlers/create-todo-handler.createTodoHandler
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBWritePolicy:
+            TableName: !Ref TodoTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /todos
+            Method: POST
+            RestApiId: !Ref TodoApi
+            RequestModel:
+              Model: CreateTodo
+              Required: true
+              ValidateBody: true
+
+  GetTodosByUsernameFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetTodosByUsername
+      Handler: src/handlers/get-todos-by-username-handler.getTodosByUsernameHandler
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TodoTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /todos
+            Method: GET
+            RestApiId: !Ref TodoApi
+
+  GetTodoByIdFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: GetTodoById
+      Handler: src/handlers/get-todo-by-id-handler.getTodoByIdHandler
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - DynamoDBReadPolicy:
+            TableName: !Ref TodoTable
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /todos/{id}
+            Method: GET
+            RestApiId: !Ref TodoApi
+
+  UpdateTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: UpdateTodo
+      Handler: src/handlers/update-todo-handler.updateTodoHandler
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:UpdateItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TodoTable}
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /todos/{id}
+            Method: PUT
+            RestApiId: !Ref TodoApi
+            RequestModel:
+              Model: UpdateTodo
+              Required: true
+              ValidateBody: true
+
+  DeleteTodoFunction:
+    Type: AWS::Serverless::Function
+    Properties:
+      FunctionName: DeleteTodo
+      Handler: src/handlers/delete-todo-handler.deleteTodoHandler
+      MemorySize: 128
+      Timeout: 10
+      Policies:
+        - Statement:
+            - Effect: Allow
+              Action:
+                - dynamodb:DeleteItem
+              Resource: !Sub arn:aws:dynamodb:${AWS::Region}:${AWS::AccountId}:table/${TodoTable}
+      Events:
+        Api:
+          Type: Api
+          Properties:
+            Path: /todos/{id}
+            Method: DELETE
+            RestApiId: !Ref TodoApi
+
+  TodoTable:
+    Type: AWS::DynamoDB::Table
+    Properties:
+      TableName: todos
+      AttributeDefinitions:
+        - AttributeName: id
+          AttributeType: S
+        - AttributeName: username
+          AttributeType: S
+      KeySchema:
+        - AttributeName: id
+          KeyType: HASH
+      GlobalSecondaryIndexes:
+        - IndexName: UsernameIndex
+          KeySchema:
+            - AttributeName: username
+              KeyType: HASH
+          Projection:
+            ProjectionType: ALL
+          ProvisionedThroughput:
+            ReadCapacityUnits: 5
+            WriteCapacityUnits: 5
+      ProvisionedThroughput:
+        ReadCapacityUnits: 5
+        WriteCapacityUnits: 5
+
+  TodoUserPool:
+    Type: AWS::Cognito::UserPool
+    Properties:
+      UserPoolName: TodoUserPool
+      Policies:
+        PasswordPolicy:
+          MinimumLength: 8
+          RequireLowercase: true
+          RequireNumbers: true
+          RequireSymbols: false
+          RequireUppercase: false
+      Schema:
+        - AttributeDataType: String
+          Name: email
+          Required: true
+      AutoVerifiedAttributes:
+        - email
+
+  TodoUserPoolClient:
+    Type: AWS::Cognito::UserPoolClient
+    Properties:
+      ClientName: TodoUserPoolClient
+      ExplicitAuthFlows:
+        - ALLOW_USER_PASSWORD_AUTH
+        - ALLOW_REFRESH_TOKEN_AUTH
+      GenerateSecret: false
+      UserPoolId: !Ref TodoUserPool

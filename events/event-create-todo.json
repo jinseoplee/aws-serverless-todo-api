@@ -1,0 +1,12 @@
+{
+  "httpMethod": "POST",
+  "body": "{\"title\": \"<TITLE>\"}",
+  "requestContext": {
+    "requestId": "<REQUEST-ID>",
+    "authorizer": {
+      "claims": {
+        "cognito:username": "<USERNAME>"
+      }
+    }
+  }
+}
